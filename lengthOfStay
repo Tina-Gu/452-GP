@@ -1,0 +1,67 @@
+import pandas as pd
+import numpy as np
+import warnings
+from sklearn import preprocessing
+from sklearn.neural_network import MLPClassifier
+from sklearn.metrics import classification_report
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import r2_score, mean_squared_error
+warnings.filterwarnings('ignore')
+
+def dataprocess():
+    import pandas as pd
+    data = pd.read_csv("LengthOfStay.csv")
+    #Show all rows
+    #pd.set_option('display.max_columns', None)
+    data.drop(columns = ["eid","vdate","discharged","facid"],inplace = True)
+    data = data. replace({'gender': {'M':1, 'F':0}, 'rcount': {'5+' : 5}})
+    data = data.astype({'rcount': 'int'})
+    
+    hematocrit = data[['hematocrit']].values
+    data['hematocrit'] = preprocessing.StandardScaler().fit_transform(hematocrit)
+    
+    bloodureanitro = data[['neutrophils']].values
+    data['neutrophils'] = preprocessing.RobustScaler().fit_transform(bloodureanitro)
+
+    sodium = data[['sodium']].values
+    data['sodium'] = preprocessing.StandardScaler().fit_transform(sodium)
+
+    glucose = data[['glucose']].values
+    data['glucose'] = preprocessing.StandardScaler().fit_transform(glucose)
+
+    bloodureanitro = data[['bloodureanitro']].values
+    data['bloodureanitro'] = preprocessing.RobustScaler().fit_transform(bloodureanitro)
+
+    creatinine = data[['creatinine']].values
+    data['creatinine'] = preprocessing.StandardScaler().fit_transform(creatinine)
+
+    bmi = data[['bmi']].values
+    data['bmi'] = preprocessing.StandardScaler().fit_transform(bmi)
+
+    pulse = data[['pulse']].values
+    data['pulse'] = preprocessing.StandardScaler().fit_transform(pulse)
+
+    respiration = data[['respiration']].values
+    data['respiration'] = preprocessing.StandardScaler().fit_transform(respiration)
+
+    data = pd.concat([data, pd.get_dummies(data['secondarydiagnosisnonicd9'])], axis=1)
+    data = data.drop(columns=['secondarydiagnosisnonicd9'])
+    labels = data['lengthofstay']
+    data = data.drop(columns=['lengthofstay'])
+    
+    train_X = data.head(n=80000).to_numpy()
+    test_X = data.tail(n=20000).to_numpy()
+    train_Y = labels.head(n=80000).to_numpy()
+    test_Y = labels.tail(n=20000).to_numpy()
+
+#main
+    reg_model = RandomForestRegressor(random_state = 0)
+    reg_model.fit(train_X, train_Y)
+    y_test_preds = reg_model.predict(test_X)
+    results= r2_score(test_Y, y_test_preds)
+    print('R2 score: ', results)
+    mse = mean_squared_error(test_Y, y_test_preds)
+    rmse = mse** 0.5
+    print("MSE: %.4f" % mse)
+    print("RMSE: %.4f" % rmse)
+dataprocess()
