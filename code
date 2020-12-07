@@ -102,5 +102,8 @@ def model(train_X, test_X, train_Y, test_Y):
     # get the final accuracy
     score = model.evaluate(test_X,y_test,verbose=0)
     print(score)
-model()
 
+def main():
+    train_X, train_Y, test_X, test_Y = gendata(doPCA=False)
+    model(train_X, test_X, train_Y, test_Y)
+main()
